@@ -49,7 +49,7 @@ def get_page_data(html, url):
     title = soup.find('div', class_='block heading prose text-left').find('h1').text
     category = soup.find_all('div', class_='quick-details-content')[0].find_all('span')[1].text
     location = soup.find_all('div', class_='quick-details-content')[1].find_all('span')[1].text
-    link = url
+    link = soup.find_all('div', class_='block button-block')[1].find('a').get('href')
     data = title, category, location, link,
     print(data)
     return data
