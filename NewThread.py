@@ -18,7 +18,6 @@ routs = [
     # 'https://iwilltravelagain.com/usa/?page=1',
 ]
 
-
 base_url = 'https://iwilltravelagain.com'
 
 
@@ -74,34 +73,44 @@ def get_total_pages(html):
 
 def get_urls(rout):
     urls_list = []
-    for i in range(1, get_total_pages(get_html(rout)) + 1):
+    total_pages = get_total_pages(get_html(rout)) + 1
+    for i in range(1, total_pages):
         url = rout[:-1] + str(i)
         urls_list.append(url)
         print(url)
     return urls_list
 
 
+def get_rout_urls_list(rout):
+    urls = get_urls(rout)
+
+    pool = ThreadPool(4)
+    htmls = pool.map(get_html, urls)
+    pool.close()
+    pool.join()
+
+    pool1 = ThreadPool(4)
+    result = pool1.map(get_urls_on_page, htmls)
+    pool1.close()
+    pool1.join()
+
+    urls_list = []
+    for res in result:
+        for r in res:
+            urls_list.append(r)
+
+    return urls_list
+
+
 def get_all_urls_list():
+    pool = ThreadPool(2)
+    urls_lists = pool.map(get_rout_urls_list, routs)
+    pool.close()
+    pool.join()
     all_urls_list = []
-    for rout in routs:
-        try:
-            urls = get_urls(rout)
-
-            pool = ThreadPool(8)
-            htmls = pool.map(get_html, urls)
-            pool.close()
-            pool.join()
-
-            pool1 = ThreadPool(8)
-            result = pool1.map(get_urls_on_page, htmls)
-            pool1.close()
-            pool1.join()
-
-            for res in result:
-                for r in res:
-                    all_urls_list.append(r)
-
-        except Exception: pass
+    for lst in urls_lists:
+        for url in lst:
+            all_urls_list.append(url)
 
     return all_urls_list
 
